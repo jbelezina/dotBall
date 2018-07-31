@@ -24,8 +24,10 @@ window.onload = function() {
     constructor(x, y, velocity) {
       this.x = x;
       this.y = y;
-      this.velocity = 2;
-      this.direction = 1;
+      this.velocityX = 2;
+      this.velocityY = 0.2;
+      this.directionX = 1;
+      this.directionY = 1;
     }
 
     draw() {
@@ -36,18 +38,28 @@ window.onload = function() {
 
     move() {
       if (this.x + 40 === canvas.width) {
-        this.direction = 0;
+        this.directionX = 0;
       } else if (this.x === 0) {
-        this.direction = 1;
+        this.directionX = 1;
       }
 
-      if (0 < this.x + 40 < canvas.width && this.direction === 1) {
-        this.x += this.velocity;
-      } else if (0 < this.x + 40 < canvas.width && this.direction === 0) {
-        this.x -= this.velocity;
+      if (this.x + 40 < canvas.width && this.directionX === 1) {
+        this.x += this.velocityX;
+      } else if (0 < this.x + 40 < canvas.width && this.directionX === 0) {
+        this.x -= this.velocityX;
       }
 
-      this.y += 0.1;
+      if (this.y <= 0 && this.directionY === 0) {
+        this.directionY = 1;
+      } else if (this.y + 20 >= canvas.height && this.directionY === 1) {
+        this.directionY = 0;
+      }
+
+      if (this.directionY === 1) {
+        this.y += this.velocityY;
+      } else if (this.directionY === 0) {
+        this.y -= this.velocityY;
+      }
     }
   }
 
@@ -93,19 +105,27 @@ window.onload = function() {
     }
 
     moveRight() {
-      this.x += 5;
+      if (this.x <= canvas.width - 15) {
+        this.x += 5;
+      }
     }
 
     moveLeft() {
-      this.x -= 5;
+      if (this.x >= 15) {
+        this.x -= 5;
+      }
     }
 
     moveUp() {
-      this.y -= 5;
+      if (this.y > 0) {
+        this.y -= 5;
+      }
     }
 
     moveDown() {
-      this.y += 5;
+      if (this.y + 25 < canvas.height) {
+        this.y += 5;
+      }
     }
 
     shoot() {
