@@ -128,8 +128,8 @@ window.onload = function() {
       enemyY += 10;
     });
   }
-  spawnEnemies();
 
+  spawnEnemies();
   let backgrounds = [];
   let backgroundOne = new Background(0, 0, image);
   backgrounds.push(backgroundOne);
@@ -145,13 +145,11 @@ window.onload = function() {
   function update() {
     // check for projectiles hitting the enemies
 
-    // collision detection
     let projectiles = playerOne.projectiles;
     if (projectiles.length > 0) {
+      // collision detection
       for (let i = 0; i < playerOne.projectiles.length; i++) {
-        //        console.log("projectlie X: " + playerOne.projectiles[i]["x"]);
         for (let x = 0; x < enemies.length; x++) {
-          //          console.log("enemy no" + x + "position is: " + enemies[x]["x"]);
           if (playerOne.projectiles.length >= 1) {
             if (
               playerOne.projectiles[i]["x"] >= enemies[x]["x"] &&
@@ -159,11 +157,23 @@ window.onload = function() {
               (playerOne.projectiles[i]["y"] < enemies[x]["y"] + 10 &&
                 playerOne.projectiles[i]["y"] > enemies[x]["y"] - 10)
             ) {
-              //playerOne.projectiles.splice(i, 1);
               enemies.splice(x, 1);
               playerOne.projectiles.splice(i, 1);
             }
           }
+        }
+      }
+    }
+    // spawn enemies if projectile misses
+    if (projectiles.length > 0) {
+      for (let i = 0; i < playerOne.projectiles.length; i++) {
+        if (playerOne.projectiles[i]["y"] === 0) {
+          console.log("hit");
+          let y = playerOne.projectiles[i]["y"];
+          let x = playerOne.projectiles[i]["x"];
+          let enemy = new Enemy(x, y);
+          enemies.push(enemy);
+          playerOne.projectiles.splice(i, 1);
         }
       }
     }
@@ -177,7 +187,7 @@ window.onload = function() {
     backgroundOne.move();
     backgroundTwo.move();
     backgroundThree.move();
-  }
+  } // end of update
 
   function render() {
     backgroundOne.draw();
