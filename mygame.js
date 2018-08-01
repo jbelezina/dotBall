@@ -174,7 +174,7 @@ window.onload = function() {
             if (
               playerOne.projectiles[i]["x"] >= enemies[x]["x"] &&
               playerOne.projectiles[i]["x"] <= enemies[x]["x"] + 40 &&
-              (playerOne.projectiles[i]["y"] < enemies[x]["y"] + 10 &&
+              (playerOne.projectiles[i]["y"] - 15 < enemies[x]["y"] + 10 &&
                 playerOne.projectiles[i]["y"] > enemies[x]["y"] - 10)
             ) {
               enemies.splice(x, 1);
