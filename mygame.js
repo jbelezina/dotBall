@@ -2,6 +2,7 @@ window.onload = function() {
   let canvas = document.getElementById("myCanvas");
   let ctx = canvas.getContext("2d");
   let image = document.getElementById("zdjecie");
+  let explosion = document.getElementById("explosion");
 
   ctx.save();
 
@@ -17,6 +18,112 @@ window.onload = function() {
 
     draw() {
       ctx.drawImage(image, this.x, this.y, canvas.width, canvas.height);
+    }
+  }
+
+  class Explosion {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.imgXY = [
+        [0, 0],
+        [100, 0],
+        [200, 0],
+        [300, 0],
+        [400, 0],
+        [500, 0],
+        [600, 0],
+        [700, 0],
+        [800, 0],
+        [0, 100],
+        [100, 100],
+        [200, 100],
+        [300, 100],
+        [400, 100],
+        [500, 100],
+        [600, 100],
+        [700, 100],
+        [800, 100],
+        [0, 200],
+        [100, 200],
+        [200, 200],
+        [300, 200],
+        [400, 200],
+        [500, 200],
+        [600, 200],
+        [700, 200],
+        [800, 200],
+        [0, 300],
+        [100, 300],
+        [200, 300],
+        [300, 300],
+        [400, 300],
+        [500, 300],
+        [600, 300],
+        [700, 300],
+        [800, 300],
+        [0, 100],
+        [100, 400],
+        [200, 400],
+        [300, 400],
+        [400, 400],
+        [500, 400],
+        [600, 400],
+        [700, 400],
+        [800, 400],
+        [0, 500],
+        [100, 500],
+        [200, 500],
+        [300, 500],
+        [400, 500],
+        [500, 500],
+        [600, 500],
+        [700, 500],
+        [800, 500],
+        [0, 600],
+        [100, 600],
+        [200, 600],
+        [300, 600],
+        [400, 600],
+        [500, 600],
+        [600, 600],
+        [700, 600],
+        [800, 600],
+        [0, 700],
+        [100, 700],
+        [200, 700],
+        [300, 700],
+        [400, 700],
+        [500, 700],
+        [600, 700],
+        [700, 700],
+        [800, 700]
+      ];
+      this.frame = 0;
+      this.sourceWidth = 100;
+      this.sourceHeight = 100;
+      this.destinationWidth = 50;
+      this.destinationHeight = 50;
+    }
+
+    draw(x, y) {
+      ctx.drawImage(
+        explosion,
+        this.imgXY[this.frame][0],
+        this.imgXY[this.frame][1],
+        this.sourceWidth,
+        this.sourceHeight,
+        this.x,
+        this.y,
+        this.destinationWidth,
+        this.destinationHeight
+      );
+
+      if (this.frame < 71) {
+        this.frame += 1;
+      } else if (this.frame >= 71) {
+        this.frame = 0;
+      }
     }
   }
 
@@ -37,7 +144,7 @@ window.onload = function() {
     }
 
     move() {
-      if (this.x + 40 === canvas.width) {
+      if (this.x + 40 >= canvas.width) {
         this.directionX = 0;
       } else if (this.x === 0) {
         this.directionX = 1;
@@ -161,6 +268,7 @@ window.onload = function() {
     image
   );
   backgrounds.push(backgroundThree);
+  let explosions = [];
 
   function update() {
     // check for projectiles hitting the enemies
@@ -170,13 +278,21 @@ window.onload = function() {
       // collision detection
       for (let i = 0; i < playerOne.projectiles.length; i++) {
         for (let x = 0; x < enemies.length; x++) {
-          if (playerOne.projectiles.length >= 1) {
+          if (
+            playerOne.projectiles.length >= 1 &&
+            playerOne.projectiles[i]["x"]
+          ) {
             if (
               playerOne.projectiles[i]["x"] >= enemies[x]["x"] &&
               playerOne.projectiles[i]["x"] <= enemies[x]["x"] + 40 &&
               (playerOne.projectiles[i]["y"] - 15 < enemies[x]["y"] + 10 &&
-                playerOne.projectiles[i]["y"] > enemies[x]["y"] - 10)
+                playerOne.projectiles[i]["y"] + 15 > enemies[x]["y"] - 10)
             ) {
+              let explosion = new Explosion(
+                playerOne.projectiles[i]["x"] - 30,
+                playerOne.projectiles[i]["y"] - 30
+              );
+              explosions.push(explosion);
               enemies.splice(x, 1);
               playerOne.projectiles.splice(i, 1);
             }
@@ -222,6 +338,15 @@ window.onload = function() {
       ctx.font = "80px Arial";
       ctx.strokeText("YOU WON!", 30, canvas.height / 2);
     }
+
+    for (let q = 0; q < explosions.length; q++) {
+      let explosion = explosions[q];
+      if (explosion.frame >= 71) {
+        explosions.splice(q, 1);
+      } else {
+        explosion.draw();
+      }
+    }
   }
 
   // HANDLE EVENTS
@@ -256,6 +381,7 @@ window.onload = function() {
   // GAME LOOP
   function frame() {
     // Clear
+    console.log("frame");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     //Update
     update();
