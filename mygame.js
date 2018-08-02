@@ -146,7 +146,7 @@ window.onload = function() {
     move() {
       if (this.x + 40 >= canvas.width) {
         this.directionX = 0;
-      } else if (this.x === 0) {
+      } else if (this.x <= 0) {
         this.directionX = 1;
       }
 
@@ -272,39 +272,33 @@ window.onload = function() {
 
   function update() {
     // check for projectiles hitting the enemies
-
-    let projectiles = playerOne.projectiles;
-    if (projectiles.length > 0) {
+    if (playerOne.projectiles.length > 0) {
       // collision detection
       for (let i = 0; i < playerOne.projectiles.length; i++) {
+        let projectile = playerOne.projectiles[i];
         for (let x = 0; x < enemies.length; x++) {
           if (
-            playerOne.projectiles.length >= 1 &&
-            playerOne.projectiles[i]["x"]
+            projectile["x"] >= enemies[x]["x"] &&
+            projectile["x"] <= enemies[x]["x"] + 40 &&
+            (projectile["y"] - 15 < enemies[x]["y"] + 10 &&
+              projectile["y"] + 15 > enemies[x]["y"] - 10)
           ) {
-            if (
-              playerOne.projectiles[i]["x"] >= enemies[x]["x"] &&
-              playerOne.projectiles[i]["x"] <= enemies[x]["x"] + 40 &&
-              (playerOne.projectiles[i]["y"] - 15 < enemies[x]["y"] + 10 &&
-                playerOne.projectiles[i]["y"] + 15 > enemies[x]["y"] - 10)
-            ) {
-              let explosion = new Explosion(
-                playerOne.projectiles[i]["x"] - 30,
-                playerOne.projectiles[i]["y"] - 30
-              );
-              explosions.push(explosion);
-              enemies.splice(x, 1);
-              playerOne.projectiles.splice(i, 1);
-            }
+            let explosion = new Explosion(
+              projectile["x"] - 30,
+              projectile["y"] - 30
+            );
+            explosions.push(explosion);
+            enemies.splice(x, 1);
+            playerOne.projectiles.splice(i, 1);
           }
         }
       }
     }
+
     // spawn enemies if projectile misses
-    if (projectiles.length > 0) {
+    if (playerOne.projectiles.length > 0) {
       for (let i = 0; i < playerOne.projectiles.length; i++) {
         if (playerOne.projectiles[i]["y"] === 0) {
-          console.log("hit");
           let y = playerOne.projectiles[i]["y"];
           let x = playerOne.projectiles[i]["x"];
           let enemy = new Enemy(x, y);
@@ -335,8 +329,9 @@ window.onload = function() {
       enemy.move();
     });
     if (enemies.length === 0) {
-      ctx.font = "80px Arial";
-      ctx.strokeText("YOU WON!", 30, canvas.height / 2);
+      ctx.font = "40px Courier New";
+      ctx.strokeText("Shoot to get", 100, canvas.height / 2);
+      ctx.strokeText("more enemies", 100, canvas.height / 2 + 50);
     }
 
     for (let q = 0; q < explosions.length; q++) {
@@ -381,7 +376,6 @@ window.onload = function() {
   // GAME LOOP
   function frame() {
     // Clear
-    console.log("frame");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     //Update
     update();
