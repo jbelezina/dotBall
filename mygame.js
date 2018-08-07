@@ -32,7 +32,8 @@ window.onload = function() {
       this.noOfConnections = 0;
       this.connectedTo = [];
       this.dotSize = 5;
-      this.dotColor = "black";
+      this.dotColor = "lightgray";
+      this.pulseDirection = 1;
     }
 
     draw() {
@@ -44,8 +45,49 @@ window.onload = function() {
       ctx.closePath();
     }
 
+    pulsate() {
+      if (this.dotSize === 5) {
+        this.dotSize = 10;
+        this.pulseDirection = 1;
+        this.dotColor = "black";
+      }
+
+      if (this.pulseDirection === 1) {
+        if (this.dotSize < 15) {
+          this.increaseDotSize();
+        } else if (this.dotSize >= 15) {
+          this.decreaseDotSize();
+          this.pulseDirection = 0;
+        }
+      } else if (this.pulseDirection === 0) {
+        if (this.dotSize > 10) {
+          this.decreaseDotSize();
+        } else if (this.dotSize <= 10) {
+          this.increaseDotSize();
+          this.pulseDirection = 1;
+        }
+      }
+    }
+
+    inactive() {
+      this.dotSize = 5;
+      this.dotColor = "lightgrey";
+    }
+
     increaseDotSize() {
-      this.dotSize++;
+      this.dotSize += 0.3;
+    }
+
+    decreaseDotSize() {
+      this.dotSize -= 0.3;
+    }
+
+    incrementPulseFrame() {
+      this.pulseFrame++;
+    }
+
+    decrementPulseFrame() {
+      this.pulseFrame--;
     }
 
     changeDotColor(color) {
@@ -78,7 +120,7 @@ window.onload = function() {
     }
   }
 
-  let boisko = new Pitch(canvas.width / 3, canvas.width / 4, 30, 9, 10);
+  let boisko = new Pitch(50, 50, 50, 9, 11);
   boisko.generateDots();
   // HANDLE EVENTS
 
@@ -95,15 +137,28 @@ window.onload = function() {
     }
   }
 
+  function clear() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
   function update() {
     // draw the dots
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
 
-      if (detectColisionWithCircle(dot.dotSize, dot.x, dot.y, mouseX, mouseY)) {
-        dot.increaseDotSize();
-        dot.changeDotColor("red");
+      if (
+        detectColisionWithCircle(dot.dotSize + 2, dot.x, dot.y, mouseX, mouseY)
+      ) {
+        dot.pulsate();
+      } else {
+        dot.inactive();
       }
+    }
+  }
+
+  function render() {
+    for (let d = 0; d < dots.length; d++) {
+      let dot = dots[d];
       dot.draw();
     }
   }
@@ -134,10 +189,9 @@ window.onload = function() {
   // GAME LOOP
 
   function frame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    clear();
     update();
-
+    render();
     requestAnimationFrame(frame);
   }
 
