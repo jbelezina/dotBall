@@ -3,6 +3,7 @@ window.onload = function() {
   let ctx = canvas.getContext("2d");
   let mouseX;
   let mouseY;
+  let mouseClick = {};
   let dots = [];
 
   function getMousePos(canvas, evt) {
@@ -22,6 +23,33 @@ window.onload = function() {
     },
     false
   );
+
+  canvas.addEventListener(
+    "click",
+    function(evt) {
+      var mousePos = getMousePos(canvas, evt);
+      mouseClick = {
+        x: mousePos.x,
+        y: mousePos.y
+      };
+
+      mouseY = mousePos.y;
+    },
+    false
+  );
+
+  let game = {
+    turn: 2,
+    ball: {}
+  };
+
+  class Player {
+    constructor(name, color) {
+      this.name = name;
+      this.color = color;
+      this.moves = [];
+    }
+  }
 
   class Dot {
     constructor(x, y, rowNo, columnNo) {
@@ -45,11 +73,20 @@ window.onload = function() {
       ctx.closePath();
     }
 
+    selected() {
+      this.dotSize = 20;
+      game.turn === 1
+        ? this.changeDotColor(playerOne.color)
+        : this.changeDotColor(playerTwo.color);
+    }
+
     pulsate() {
       if (this.dotSize === 5) {
         this.dotSize = 10;
         this.pulseDirection = 1;
-        this.dotColor = "black";
+        game.turn === 1
+          ? (this.dotColor = playerOne.color)
+          : (this.dotColor = playerTwo.color);
       }
 
       if (this.pulseDirection === 1) {
@@ -122,6 +159,8 @@ window.onload = function() {
 
   let boisko = new Pitch(50, 50, 50, 9, 11);
   boisko.generateDots();
+  let playerOne = new Player("Janek", "lightgreen");
+  let playerTwo = new Player("Janek", "lightyellow");
   // HANDLE EVENTS
 
   function detectColisionWithCircle(radius, circleX, circleY, pointX, pointY) {
@@ -146,12 +185,46 @@ window.onload = function() {
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
 
+      if (dot.x === game.ball.rowNo && dot.y === game.ball.columnNo) {
+        dot.selected();
+      }
+
       if (
-        detectColisionWithCircle(dot.dotSize + 2, dot.x, dot.y, mouseX, mouseY)
+        detectColisionWithCircle(
+          // check if mousover
+          dot.dotSize + 2,
+          dot.x,
+          dot.y,
+          mouseX,
+          mouseY
+        ) &&
+        (dot.x !== game.ball.rowNo && dot.y !== game.ball.columnNo)
       ) {
         dot.pulsate();
       } else {
-        dot.inactive();
+        if (dot.x === game.ball.rowNo && dot.y === game.ball.columnNo) {
+          dot.selected();
+        } else {
+          dot.inactive();
+        }
+      }
+
+      if (
+        detectColisionWithCircle(
+          // check if click
+          dot.dotSize + 2,
+          dot.x,
+          dot.y,
+          mouseClick.x,
+          mouseClick.y
+        )
+      ) {
+        console.log("clicked" + dot.rowNo + dot.columnNo);
+        game.ball = {
+          row: dot.rowNo,
+          column: dot.columnNo
+        };
+        mouseClick = {};
       }
     }
   }
