@@ -40,7 +40,10 @@ window.onload = function() {
 
   let game = {
     turn: 2,
-    ball: {}
+    ball: {
+      rowNo: 1,
+      columnNo: 1
+    }
   };
 
   class Player {
@@ -74,7 +77,7 @@ window.onload = function() {
     }
 
     selected() {
-      this.dotSize = 20;
+      this.dotSize = 15;
       game.turn === 1
         ? this.changeDotColor(playerOne.color)
         : this.changeDotColor(playerTwo.color);
@@ -180,14 +183,18 @@ window.onload = function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  function dotIsTarget(dot) {
+    if (dot.rowNo === game.ball.rowNo && dot.columnNo === game.ball.columnNo) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   function update() {
     // draw the dots
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
-
-      if (dot.x === game.ball.rowNo && dot.y === game.ball.columnNo) {
-        dot.selected();
-      }
 
       if (
         detectColisionWithCircle(
@@ -198,11 +205,11 @@ window.onload = function() {
           mouseX,
           mouseY
         ) &&
-        (dot.x !== game.ball.rowNo && dot.y !== game.ball.columnNo)
+        !dotIsTarget(dot)
       ) {
         dot.pulsate();
       } else {
-        if (dot.x === game.ball.rowNo && dot.y === game.ball.columnNo) {
+        if (dotIsTarget(dot)) {
           dot.selected();
         } else {
           dot.inactive();
@@ -221,9 +228,10 @@ window.onload = function() {
       ) {
         console.log("clicked" + dot.rowNo + dot.columnNo);
         game.ball = {
-          row: dot.rowNo,
-          column: dot.columnNo
+          rowNo: dot.rowNo,
+          columnNo: dot.columnNo
         };
+        console.log(game.ball);
         mouseClick = {};
       }
     }
