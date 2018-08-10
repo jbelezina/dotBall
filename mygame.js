@@ -55,20 +55,20 @@ window.onload = function() {
   }
 
   class Dot {
-    constructor(x, y, rowNo, columnNo) {
+    constructor(x, y, rowNo, columnNo, dotSize, color) {
       this.x = x;
       this.y = y;
       this.rowNo = rowNo;
       this.columnNo = columnNo;
       this.noOfConnections = 0;
       this.connectedTo = [];
-      this.dotSize = 5;
-      this.dotColor = "lightgray";
+      this.dotSize = dotSize || 5;
+      this.dotColor = color || "lightgray";
       this.pulseDirection = 1;
+      this.isNeighbour = false;
     }
 
     draw() {
-      // pulsating effect
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.dotSize, 0, 2 * Math.PI);
       ctx.fillStyle = this.dotColor;
@@ -81,6 +81,26 @@ window.onload = function() {
       game.turn === 1
         ? this.changeDotColor(playerOne.color)
         : this.changeDotColor(playerTwo.color);
+    }
+
+    drawNeighbour() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.dotSize + 5, 0, 2 * Math.PI);
+      ctx.strokeStyle = "red";
+      ctx.stroke();
+      ctx.closePath();
+      this.pulsate();
+    }
+
+    dotIsTarget() {
+      if (
+        this.rowNo === game.ball.rowNo &&
+        this.columnNo === game.ball.columnNo
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
 
     pulsate() {
@@ -115,11 +135,11 @@ window.onload = function() {
     }
 
     increaseDotSize() {
-      this.dotSize += 0.3;
+      this.dotSize += 0.1;
     }
 
     decreaseDotSize() {
-      this.dotSize -= 0.3;
+      this.dotSize -= 0.1;
     }
 
     incrementPulseFrame() {
@@ -183,42 +203,34 @@ window.onload = function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  function dotIsTarget(dot) {
-    if (dot.rowNo === game.ball.rowNo && dot.columnNo === game.ball.columnNo) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   function update() {
     // draw the dots
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
 
-      if (
-        detectColisionWithCircle(
-          // check if mousover
-          dot.dotSize + 2,
-          dot.x,
-          dot.y,
-          mouseX,
-          mouseY
-        ) &&
-        !dotIsTarget(dot)
-      ) {
+      if (dot.dotIsTarget()) {
+        dot.selected();
+      } else if (dot.isNeighbour) {
         dot.pulsate();
-      } else {
-        if (dotIsTarget(dot)) {
-          dot.selected();
-        } else {
-          dot.inactive();
+
+        if (
+          detectColisionWithCircle(
+            // mousemove
+            dot.dotSize + 2,
+            dot.x,
+            dot.y,
+            mouseX,
+            mouseY
+          )
+        ) {
+          dot.draw();
         }
+      } else {
+        dot.inactive();
       }
 
       if (
         detectColisionWithCircle(
-          // check if click
           dot.dotSize + 2,
           dot.x,
           dot.y,
@@ -226,12 +238,24 @@ window.onload = function() {
           mouseClick.y
         )
       ) {
-        console.log("clicked" + dot.rowNo + dot.columnNo);
         game.ball = {
           rowNo: dot.rowNo,
           columnNo: dot.columnNo
         };
-        console.log(game.ball);
+
+        dots.forEach(dot => {
+          dot.isNeighbour = false;
+        });
+
+        dots[d - 1].isNeighbour = true;
+        dots[d - 1].pulsate();
+        dots[d + 1].isNeighbour = true;
+        dots[d - 10].isNeighbour = true;
+        dots[d - 9].isNeighbour = true;
+        dots[d - 8].isNeighbour = true;
+        dots[d + 10].isNeighbour = true;
+        dots[d + 9].isNeighbour = true;
+        dots[d + 8].isNeighbour = true;
         mouseClick = {};
       }
     }
@@ -240,7 +264,12 @@ window.onload = function() {
   function render() {
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
-      dot.draw();
+
+      if (dot.isNeighbour) {
+        dot.drawNeighbour();
+      } else {
+        dot.draw();
+      }
     }
   }
 
