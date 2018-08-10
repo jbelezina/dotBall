@@ -5,6 +5,7 @@ window.onload = function() {
   let mouseY;
   let mouseClick = {};
   let dots = [];
+  let moves = [];
 
   function getMousePos(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
@@ -32,17 +33,18 @@ window.onload = function() {
         x: mousePos.x,
         y: mousePos.y
       };
-
       mouseY = mousePos.y;
     },
     false
   );
 
   let game = {
-    turn: 2,
+    turn: 1,
     ball: {
-      rowNo: 1,
-      columnNo: 1
+      rowNo: 5,
+      columnNo: 4,
+      x: 400,
+      y: 300
     }
   };
 
@@ -164,6 +166,18 @@ window.onload = function() {
       this.spacing = spacing;
       this.noOfColumns = noOfColumns;
       this.noOfRows = noOfRows;
+      this.moves = [];
+    }
+
+    drawMoves() {
+      this.moves.forEach(item => {
+        ctx.beginPath();
+        ctx.lineWidth = "5";
+        ctx.strokeStyle = playerOne.color;
+        ctx.moveTo(item.from[0], item.from[1]);
+        ctx.lineTo(item.to[0], item.to[1]);
+        ctx.stroke();
+      });
     }
 
     generateDots() {
@@ -180,7 +194,7 @@ window.onload = function() {
     }
   }
 
-  let boisko = new Pitch(50, 50, 50, 9, 11);
+  let boisko = new Pitch(canvas.width / 4, canvas.height / 12, 50, 9, 11);
   boisko.generateDots();
   let playerOne = new Player("Janek", "lightgreen");
   let playerTwo = new Player("Janek", "lightyellow");
@@ -231,6 +245,7 @@ window.onload = function() {
 
       if (
         detectColisionWithCircle(
+          //mouse click
           dot.dotSize + 2,
           dot.x,
           dot.y,
@@ -238,9 +253,16 @@ window.onload = function() {
           mouseClick.y
         )
       ) {
+        let newMove = {
+          from: [game.ball.x, game.ball.y],
+          to: [dot.x, dot.y]
+        };
+        boisko.moves.push(newMove);
         game.ball = {
           rowNo: dot.rowNo,
-          columnNo: dot.columnNo
+          columnNo: dot.columnNo,
+          x: dot.x,
+          y: dot.y
         };
 
         dots.forEach(dot => {
@@ -248,20 +270,29 @@ window.onload = function() {
         });
 
         dots[d - 1].isNeighbour = true;
+        dots[d - 1].dotSize = 5;
         dots[d - 1].pulsate();
         dots[d + 1].isNeighbour = true;
+        dots[d + 1].dotSize = 5;
         dots[d - 10].isNeighbour = true;
+        dots[d - 10].dotSize = 5;
         dots[d - 9].isNeighbour = true;
+        dots[d - 9].dotSize = 5;
         dots[d - 8].isNeighbour = true;
+        dots[d - 8].dotSize = 5;
         dots[d + 10].isNeighbour = true;
+        dots[d + 10].dotSize = 5;
         dots[d + 9].isNeighbour = true;
+        dots[d + 9].dotSize = 5;
         dots[d + 8].isNeighbour = true;
+        dots[d + 8].dotSize = 5;
         mouseClick = {};
       }
     }
   }
 
   function render() {
+    boisko.drawMoves();
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
 
