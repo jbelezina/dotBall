@@ -1,6 +1,7 @@
 window.onload = function() {
   let canvas = document.getElementById("myCanvas");
   let ctx = canvas.getContext("2d");
+  let pitch = document.getElementById("pitch");
   let mouseX;
   let mouseY;
   let mouseClick = {};
@@ -39,7 +40,8 @@ window.onload = function() {
   );
 
   let game = {
-    turn: 1,
+    started: false,
+    playerTurn: 1,
     ball: {
       rowNo: 5,
       columnNo: 4,
@@ -76,7 +78,7 @@ window.onload = function() {
       this.noOfConnections = 0;
       this.connectedTo = [];
       this.dotSize = dotSize || 5;
-      this.dotColor = color || "lightgray";
+      this.dotColor = "white";
       this.pulseDirection = 1;
       this.isNeighbour = false;
     }
@@ -192,11 +194,19 @@ window.onload = function() {
       this.moves.forEach(item => {
         ctx.beginPath();
         ctx.lineWidth = "5";
-        ctx.strokeStyle = playerOne.color;
+        if (item.playerTurn === 1) {
+          ctx.strokeStyle = playerOne.color;
+        } else {
+          ctx.strokeStyle = playerTwo.color;
+        }
         ctx.moveTo(item.from[0], item.from[1]);
         ctx.lineTo(item.to[0], item.to[1]);
         ctx.stroke();
       });
+    }
+
+    drawBackground() {
+      ctx.drawImage(pitch, 172, -6);
     }
 
     generateDots() {
@@ -205,7 +215,7 @@ window.onload = function() {
       for (let r = 0; r < this.noOfRows; r++) {
         for (let c = 0; c < this.noOfColumns; c++) {
           ctx.moveTo(this.x, this.y);
-          let dot = new Dot(id, this.x, this.y, r, c);
+          let dot = new Dot(id, this.x, this.y, r, c, 5, "green");
           if (id === 49) {
             game.ball = dot;
           }
@@ -221,6 +231,7 @@ window.onload = function() {
 
   let boisko = new Pitch(canvas.width / 4, canvas.height / 12, 50, 9, 11);
   boisko.generateDots();
+  boisko.drawBackground();
   let playerOne = new Player("Janek", "lightgreen");
   let playerTwo = new Player("Janek", "lightyellow");
   // HANDLE EVENTS
@@ -266,6 +277,7 @@ window.onload = function() {
         }
       } else {
         dot.inactive();
+        dot.draw();
       }
 
       if (
@@ -278,14 +290,29 @@ window.onload = function() {
           mouseClick.y
         )
       ) {
+        if ((dot.id = game.ball.id && !game.started)) {
+          game.started = true;
+        }
+
+        if (game.started && dot.isNeighbour) {
+        }
+
         let newMove = {
           from: [game.ball.x, game.ball.y],
-          to: [dot.x, dot.y]
+          to: [dot.x, dot.y],
+          playerTurn: game.playerTurn
         };
+
         boisko.moves.push(newMove);
         game.ball.connectedTo.push(dot.id);
         dot.connectedTo.push(game.ball.id);
         game.ball = dot;
+        if (game.playerTurn === 1) {
+          game.playerTurn = 2;
+        }
+        if (game.playerTurn === 2) {
+          game.playerTurn = 1;
+        }
 
         dots.forEach(dot => {
           dot.isNeighbour = false;
@@ -308,34 +335,17 @@ window.onload = function() {
             }
           }
         });
-        /*
-        dots[d - 1].isNeighbour = true;
-        dots[d - 1].dotSize = 5;
-        dots[d + 1].isNeighbour = true;
-        dots[d + 1].dotSize = 5;
-        dots[d - 10].isNeighbour = true;
-        dots[d - 10].dotSize = 5;
-        dots[d - 9].isNeighbour = true;
-        dots[d - 9].dotSize = 5;
-        dots[d - 8].isNeighbour = true;
-        dots[d - 8].dotSize = 5;
-        dots[d + 10].isNeighbour = true;
-        dots[d + 10].dotSize = 5;
-        dots[d + 9].isNeighbour = true;
-        dots[d + 9].dotSize = 5;
-        dots[d + 8].isNeighbour = true;
-        dots[d + 8].dotSize = 5;
-*/
+
         mouseClick = {};
       }
     }
   }
 
   function render() {
+    boisko.drawBackground();
     boisko.drawMoves();
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
-
       if (dot.isNeighbour) {
         dot.drawNeighbour();
       } else {
@@ -375,6 +385,5 @@ window.onload = function() {
     render();
     requestAnimationFrame(frame);
   }
-
   requestAnimationFrame(frame);
 };
