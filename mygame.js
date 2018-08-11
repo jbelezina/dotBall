@@ -57,11 +57,22 @@ window.onload = function() {
   }
 
   class Dot {
-    constructor(x, y, rowNo, columnNo, dotSize, color) {
+    constructor(id, x, y, rowNo, columnNo, dotSize, color) {
+      this.id = id;
       this.x = x;
       this.y = y;
       this.rowNo = rowNo;
       this.columnNo = columnNo;
+      this.neighbourhood = [
+        this.id - 1,
+        this.id + 1,
+        this.id - 9,
+        this.id - 8,
+        this.id - 10,
+        this.id + 8,
+        this.id + 9,
+        this.id + 10
+      ];
       this.noOfConnections = 0;
       this.connectedTo = [];
       this.dotSize = dotSize || 5;
@@ -131,6 +142,14 @@ window.onload = function() {
       }
     }
 
+    isConnectedTo(dot) {
+      if (this.connectedTo.indexOf(dot.id) != -1) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     inactive() {
       this.dotSize = 5;
       this.dotColor = "lightgrey";
@@ -181,11 +200,17 @@ window.onload = function() {
     }
 
     generateDots() {
+      let id = 0;
+
       for (let r = 0; r < this.noOfRows; r++) {
         for (let c = 0; c < this.noOfColumns; c++) {
           ctx.moveTo(this.x, this.y);
-          let dot = new Dot(this.x, this.y, r, c);
+          let dot = new Dot(id, this.x, this.y, r, c);
+          if (id === 49) {
+            game.ball = dot;
+          }
           dots.push(dot);
+          id++;
           this.x += this.spacing;
         }
         this.y += this.spacing;
@@ -258,20 +283,34 @@ window.onload = function() {
           to: [dot.x, dot.y]
         };
         boisko.moves.push(newMove);
-        game.ball = {
-          rowNo: dot.rowNo,
-          columnNo: dot.columnNo,
-          x: dot.x,
-          y: dot.y
-        };
+        game.ball.connectedTo.push(dot.id);
+        dot.connectedTo.push(game.ball.id);
+        game.ball = dot;
 
         dots.forEach(dot => {
           dot.isNeighbour = false;
         });
 
+        dots.forEach((thatdot, index) => {
+          if (dot.neighbourhood.indexOf(thatdot.id) != -1) {
+            // iterate thrugh neighbours to check if they are connected and if so isNeihgbour is false
+            console.log(
+              "dotid " + thatdot.id + "is in the neighbourhood of" + dot.id
+            );
+            if (thatdot.isConnectedTo(dot)) {
+              console.log(thatdot.id + "is connected to" + dot.id);
+              thatdot.isNeighbour = false;
+              thatdot.dotSize = 5;
+            } else {
+              console.log(thatdot.id + "is NOT connected to" + dot.id);
+              thatdot.isNeighbour = true;
+              thatdot.dotSize = 5;
+            }
+          }
+        });
+        /*
         dots[d - 1].isNeighbour = true;
         dots[d - 1].dotSize = 5;
-        dots[d - 1].pulsate();
         dots[d + 1].isNeighbour = true;
         dots[d + 1].dotSize = 5;
         dots[d - 10].isNeighbour = true;
@@ -286,6 +325,7 @@ window.onload = function() {
         dots[d + 9].dotSize = 5;
         dots[d + 8].isNeighbour = true;
         dots[d + 8].dotSize = 5;
+*/
         mouseClick = {};
       }
     }
