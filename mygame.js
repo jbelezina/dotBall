@@ -296,20 +296,6 @@ window.onload = function() {
       if (dot.isNeighbour) {
         if (
           detectColisionWithCircle(
-            // mousemove
-            dot.dotSize + 2,
-            dot.x,
-            dot.y,
-            mouseX,
-            mouseY
-          )
-        ) {
-          console.log("colision with " + dot.id + "detected");
-          dot.changeDotColor("white");
-        }
-
-        if (
-          detectColisionWithCircle(
             //mouse click
             dot.dotSize + 2,
             dot.x,
@@ -319,22 +305,25 @@ window.onload = function() {
           ) &&
           game.started === true
         ) {
+          let newTurn;
+          if (game.playerTurn === 1) {
+            newTurn = 2;
+          } else {
+            newTurn = 1;
+          }
+
           let newMove = {
             from: [game.ball.x, game.ball.y],
             to: [dot.x, dot.y],
-            playerTurn: game.playerTurn
+            playerTurn: newTurn
           };
+
+          game.playerTurn = newTurn;
 
           boisko.moves.push(newMove);
           game.ball.connectedTo.push(dot.id);
           dot.connectedTo.push(game.ball.id);
           game.ball = dot;
-          if (game.playerTurn === 1) {
-            game.playerTurn = 2;
-          }
-          if (game.playerTurn === 2) {
-            game.playerTurn = 1;
-          }
 
           dots.forEach(dot => {
             dot.isNeighbour = false;
