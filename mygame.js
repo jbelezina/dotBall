@@ -69,6 +69,16 @@ window.onload = function() {
 
     drawBall() {
       ctx.drawImage(ball, this.ball.x - 25, this.ball.y - 25, 50, 50);
+      if (!game.started) {
+        this.drawMessage("CLICK THE BALL", 200, 100);
+        this.drawMessage("TO KICK OFF", 250, 200);
+      }
+    },
+
+    drawMessage(message, x, y) {
+      ctx.font = "50px Arial";
+      ctx.fillStyle = "red";
+      ctx.fillText(message, x, y);
     }
   };
 
@@ -280,6 +290,7 @@ window.onload = function() {
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
       //click on ball to start the game
+
       if (dot.dotIsTarget() && game.started === false) {
         if (
           detectColisionWithCircle(
