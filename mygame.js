@@ -42,11 +42,33 @@ window.onload = function() {
   let game = {
     started: false,
     playerTurn: 1,
+    dontSwitchTurns: false,
+    ballImg: document.getElementById("ball"),
     ball: {
       rowNo: 5,
       columnNo: 4,
       x: 400,
       y: 300
+    },
+
+    switchTurns() {
+      if (this.playerTurn === 1) {
+        this.playerTurn = 2;
+      } else {
+        this.playerTurn = 1;
+      }
+      console.log("switching player turns to" + this.playerTurn);
+      return this.playerTurn;
+    },
+
+    startGame() {
+      if (this.started === false) {
+        this.started = true;
+      }
+    },
+
+    drawBall() {
+      ctx.drawImage(ball, this.ball.x - 25, this.ball.y - 25, 50, 50);
     }
   };
 
@@ -93,8 +115,8 @@ window.onload = function() {
     }
 
     selected() {
-      this.dotSize = 15;
-      game.turn === 1
+      this.dotSize = 25;
+      game.playerTurn === 1
         ? this.changeDotColor(playerOne.color)
         : this.changeDotColor(playerTwo.color);
     }
@@ -102,7 +124,7 @@ window.onload = function() {
     drawNeighbour() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.dotSize, 0, 2 * Math.PI);
-      ctx.strokeStyle = "lightblue";
+      ctx.strokeStyle = "lightgrey";
       ctx.stroke();
       ctx.closePath();
       this.pulsate();
@@ -216,7 +238,7 @@ window.onload = function() {
         for (let c = 0; c < this.noOfColumns; c++) {
           ctx.moveTo(this.x, this.y);
           let dot = new Dot(id, this.x, this.y, r, c, 5, "green");
-          if (id === 49) {
+          if (id === 58) {
             game.ball = dot;
           }
           dots.push(dot);
@@ -229,11 +251,11 @@ window.onload = function() {
     }
   }
 
-  let boisko = new Pitch(canvas.width / 4, canvas.height / 12, 50, 9, 11);
+  let boisko = new Pitch(208, 12, 48, 9, 13);
   boisko.generateDots();
   boisko.drawBackground();
-  let playerOne = new Player("Janek", "lightgreen");
-  let playerTwo = new Player("Janek", "lightyellow");
+  let playerOne = new Player("Janek", "#ecc600");
+  let playerTwo = new Player("Janek", "#fd6400");
   // HANDLE EVENTS
 
   function detectColisionWithCircle(radius, circleX, circleY, pointX, pointY) {
@@ -269,9 +291,7 @@ window.onload = function() {
             mouseClick.y
           )
         ) {
-          if (game.started === false) {
-            game.started = true;
-          }
+          game.startGame();
 
           dots.forEach((thatdot, index) => {
             if (dot.neighbourhood.indexOf(thatdot.id) != -1) {
@@ -279,11 +299,9 @@ window.onload = function() {
                 dot.selected();
               }
               if (thatdot.isConnectedTo(dot)) {
-                console.log(thatdot.id + "is connected to" + dot.id);
                 thatdot.isNeighbour = false;
                 thatdot.dotSize = 5;
               } else {
-                console.log(thatdot.id + "is NOT connected to" + dot.id);
                 thatdot.isNeighbour = true;
                 thatdot.dotSize = 5;
               }
@@ -305,25 +323,30 @@ window.onload = function() {
           ) &&
           game.started === true
         ) {
-          let newTurn;
-          if (game.playerTurn === 1) {
-            newTurn = 2;
-          } else {
-            newTurn = 1;
+          if (dot.id >= 3 && dot.id <= 5) {
+            alert("Player" + game.playerTurn + " WON!!!!");
           }
+
+          if (dot.id >= 111 && dot.id <= 113) {
+            alert("Player" + game.playerTurn + " WON!!!!");
+          }
+
+          dot.noOfConnections++;
+          game.ball.noOfConnections++;
 
           let newMove = {
             from: [game.ball.x, game.ball.y],
             to: [dot.x, dot.y],
-            playerTurn: newTurn
+            playerTurn: game.playerTurn
           };
-
-          game.playerTurn = newTurn;
-
           boisko.moves.push(newMove);
+
+          if (dot.noOfConnections === 1) {
+            game.switchTurns();
+          }
+
           game.ball.connectedTo.push(dot.id);
           dot.connectedTo.push(game.ball.id);
-          game.ball = dot;
 
           dots.forEach(dot => {
             dot.isNeighbour = false;
@@ -332,21 +355,27 @@ window.onload = function() {
           dots.forEach((thatdot, index) => {
             if (dot.neighbourhood.indexOf(thatdot.id) != -1) {
               // iterate thrugh neighbours to check if they are connected and if so isNeihgbour is false
-              console.log(
-                "dotid " + thatdot.id + "is in the neighbourhood of" + dot.id
-              );
-              if (thatdot.isConnectedTo(dot)) {
-                console.log(thatdot.id + "is connected to" + dot.id);
+              if (thatdot.noOfConnections > 7) {
                 thatdot.isNeighbour = false;
                 thatdot.dotSize = 5;
+              } else if (thatdot.isConnectedTo(dot)) {
+                thatdot.isNeighbour = false;
+                thatdot.dotSize = 5;
+              } else if (
+                !thatdot.isConnectedTo(dot) &&
+                thatdot.noOfConnections > 8
+              ) {
+                thatdot.isNeighbour = true;
+                thatdot.dotSize = 5;
               } else {
-                console.log(thatdot.id + "is NOT connected to" + dot.id);
                 thatdot.isNeighbour = true;
                 thatdot.dotSize = 5;
               }
             }
           });
+
           mouseClick = {};
+          game.ball = dot;
         }
       } else {
         dot.inactive();
@@ -366,9 +395,9 @@ window.onload = function() {
       } else {
         dot.draw();
       }
-
       game.ball.selected();
     }
+    game.drawBall();
   }
 
   window.addEventListener(
