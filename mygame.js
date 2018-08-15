@@ -40,6 +40,7 @@ window.onload = function() {
   );
 
   let game = {
+    winner: null,
     started: false,
     playerTurn: 1,
     dontSwitchTurns: false,
@@ -50,6 +51,9 @@ window.onload = function() {
       x: 400,
       y: 300
     },
+    ballSize: 50,
+    ballAnimation: 1,
+    ballSpeed: 0.01,
 
     switchTurns() {
       if (this.playerTurn === 1) {
@@ -59,6 +63,7 @@ window.onload = function() {
       }
       boisko.directionAnimation = true;
       boisko.startingAlpha = 0.5;
+      console.log("reset alpha with switch turns");
       boisko.directionRightFrame = -250;
       boisko.directionLeftFrame = canvas.width + 50;
       return this.playerTurn;
@@ -71,17 +76,46 @@ window.onload = function() {
     },
 
     drawBall() {
-      ctx.drawImage(ball, this.ball.x - 25, this.ball.y - 25, 50, 50);
+      console.log("drawing ball" + this.ballSize);
+      ctx.drawImage(
+        ball,
+        this.ball.x - 25,
+        this.ball.y - 25,
+        this.ballSize,
+        this.ballSize
+      );
+
+      if (this.ballSize >= 70) {
+        this.ballAnimation = 0;
+      } else if (this.ballSize <= 50) {
+        this.ballAnimation = 1;
+      }
+
+      if (this.ballSize >= 50 && this.ballAnimation === 0) {
+        this.ballSize--;
+      }
+
+      if (this.ballSize <= 80 && this.ballAnimation === 1) {
+        this.ballSize++;
+      }
+
       if (!game.started) {
-        this.drawMessage("CLICK THE BALL", 200, 100);
-        this.drawMessage("TO KICK OFF", 250, 200);
+        this.drawMessage("CLICK", 250, 260);
+        this.drawMessage("THE BALL", 180, 400);
       }
     },
 
     drawMessage(message, x, y) {
-      ctx.font = "50px Arial";
-      ctx.fillStyle = "red";
+      ctx.font = "100px Permanent Marker";
+      ctx.fillStyle = "white";
+      ctx.globalAlpha = 0.5;
       ctx.fillText(message, x, y);
+      ctx.globalAlpha = 1;
+    },
+
+    winMessage() {
+      this.drawMessage("PLAYER " + game.winner, 180, 260);
+      this.drawMessage("WON", 265, 400);
     }
   };
 
@@ -111,7 +145,7 @@ window.onload = function() {
 
     draw() {
       ctx.beginPath();
-      ctx.lineWidth = "4";
+      ctx.lineWidth = "8";
       ctx.arc(this.x, this.y, this.dotSize, 0, 2 * Math.PI);
       ctx.fillStyle = this.dotColor;
       ctx.fill();
@@ -119,7 +153,7 @@ window.onload = function() {
     }
 
     selected() {
-      this.dotSize = 25;
+      this.dotSize = 30;
       game.playerTurn === 1
         ? this.changeDotColor(playerOne.color)
         : this.changeDotColor(playerTwo.color);
@@ -251,19 +285,12 @@ window.onload = function() {
       this.startingAlpha -= 0.003;
       ctx.globalAlpha = this.startingAlpha;
       ctx.fill();
-      ctx.font = "100px Arial";
-      ctx.fillText(
-        "PLAYER 2",
-        this.directionLeftFrame + 200,
-        canvas.height / 2 + 30
-      );
       ctx.globalAlpha = 1;
-      if (this.directionLeftFrame > -500 || this.startingAlpha >= 0) {
-        this.directionLeftFrame -= 15;
+      if (this.directionLeftFrame + 200 > 0) {
+        this.directionLeftFrame -= 20;
       } else {
-        this.directionAnimation = false;
         this.directionLeftFrame = canvas.width + 50;
-        this.startingAlpha = 0.5;
+        this.directionAnimation = false;
       }
     }
 
@@ -283,16 +310,9 @@ window.onload = function() {
       this.startingAlpha -= 0.003;
       ctx.globalAlpha = this.startingAlpha;
       ctx.fill();
-      ctx.font = "100px Arial";
-      ctx.fillText(
-        "PLAYER 1",
-        this.directionRightFrame - 500,
-        canvas.height / 2 + 30
-      );
-      ctx.closePath();
       ctx.globalAlpha = 1;
-      if (this.directionRightFrame < 1400 || this.startingAlpha >= 0) {
-        this.directionRightFrame += 15;
+      if (this.directionRightFrame < 800) {
+        this.directionRightFrame += 20;
       } else {
         this.directionRightFrame = -250;
         this.directionAnimation = false;
@@ -315,7 +335,7 @@ window.onload = function() {
           if (id === 58) {
             game.ball = dot;
           }
-          console.log(id);
+
           if (id === 0) {
             dot.neighbourhood = [dot.id + 1, dot.id + 13, dot.id + 14];
           } else if (id === 12) {
@@ -455,10 +475,10 @@ window.onload = function() {
           game.started === true
         ) {
           if (dot.id === 39 || dot.id === 52 || dot.id === 65) {
-            alert("Player" + game.playerTurn + " WON!!!!");
+            game.winner = 1;
           }
           if (dot.id === 51 || dot.id === 64 || dot.id === 77) {
-            alert("Player" + game.playerTurn + " WON!!!!");
+            game.winner = 2;
           }
           console.log("neigbourhood" + dot.neighbourhood);
           dot.noOfConnections++;
@@ -533,6 +553,9 @@ window.onload = function() {
       game.ball.selected();
     }
     game.drawBall();
+    if (game.winner) {
+      game.winMessage();
+    }
   }
 
   window.addEventListener(

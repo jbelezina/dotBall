@@ -15,3 +15,8 @@ canvas {
   padding-top: 500;
   margin: auto;
 }
+
+@font-face {
+  font-family: "Permanent Marker";
+  src: url("https://fonts.googleapis.com/css?family=Permanent+Marker");
+}
