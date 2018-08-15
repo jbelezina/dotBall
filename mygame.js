@@ -54,10 +54,13 @@ window.onload = function() {
     switchTurns() {
       if (this.playerTurn === 1) {
         this.playerTurn = 2;
-      } else {
+      } else if (this.playerTurn === 2) {
         this.playerTurn = 1;
       }
-      console.log("switching player turns to" + this.playerTurn);
+      boisko.directionAnimation = true;
+      boisko.startingAlpha = 0.5;
+      boisko.directionRightFrame = -250;
+      boisko.directionLeftFrame = canvas.width + 50;
       return this.playerTurn;
     },
 
@@ -97,16 +100,7 @@ window.onload = function() {
       this.y = y;
       this.rowNo = rowNo;
       this.columnNo = columnNo;
-      this.neighbourhood = [
-        this.id - 1,
-        this.id + 1,
-        this.id - 9,
-        this.id - 8,
-        this.id - 10,
-        this.id + 8,
-        this.id + 9,
-        this.id + 10
-      ];
+      this.neighbourhood = [];
       this.noOfConnections = 0;
       this.connectedTo = [];
       this.dotSize = dotSize || 5;
@@ -133,9 +127,9 @@ window.onload = function() {
 
     drawNeighbour() {
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.dotSize, 0, 2 * Math.PI);
-      ctx.strokeStyle = "lightgrey";
-      ctx.stroke();
+      ctx.arc(this.x, this.y, this.dotSize - 3, 0, 2 * Math.PI);
+      ctx.fillStyle = "lightgrey";
+      ctx.fill();
       ctx.closePath();
       this.pulsate();
     }
@@ -221,6 +215,10 @@ window.onload = function() {
       this.noOfColumns = noOfColumns;
       this.noOfRows = noOfRows;
       this.moves = [];
+      this.directionAnimation = false;
+      this.directionRightFrame = -250;
+      this.directionLeftFrame = canvas.width + 50;
+      this.startingAlpha = 0.5;
     }
 
     drawMoves() {
@@ -237,8 +235,73 @@ window.onload = function() {
       });
     }
 
+    drawDirectionLeft() {
+      ctx.beginPath();
+      ctx.moveTo(this.directionLeftFrame, canvas.height / 4);
+      ctx.lineTo(this.directionLeftFrame - 50, canvas.height / 2);
+      ctx.lineTo(this.directionLeftFrame, canvas.height - canvas.height / 4);
+      ctx.lineTo(
+        this.directionLeftFrame + 200,
+        canvas.height - canvas.height / 4
+      );
+      ctx.lineTo(this.directionLeftFrame + 150, canvas.height / 2);
+      ctx.lineTo(this.directionLeftFrame + 200, canvas.height / 4);
+      ctx.closePath();
+      ctx.fillStyle = "white";
+      this.startingAlpha -= 0.003;
+      ctx.globalAlpha = this.startingAlpha;
+      ctx.fill();
+      ctx.font = "100px Arial";
+      ctx.fillText(
+        "PLAYER 2",
+        this.directionLeftFrame + 200,
+        canvas.height / 2 + 30
+      );
+      ctx.globalAlpha = 1;
+      if (this.directionLeftFrame > -500 || this.startingAlpha >= 0) {
+        this.directionLeftFrame -= 15;
+      } else {
+        this.directionAnimation = false;
+        this.directionLeftFrame = canvas.width + 50;
+        this.startingAlpha = 0.5;
+      }
+    }
+
+    drawDirectionRight() {
+      ctx.beginPath();
+      ctx.moveTo(this.directionRightFrame, canvas.height / 4);
+      ctx.lineTo(this.directionRightFrame + 50, canvas.height / 2);
+      ctx.lineTo(this.directionRightFrame, canvas.height - canvas.height / 4);
+      ctx.lineTo(
+        this.directionRightFrame + 200,
+        canvas.height - canvas.height / 4
+      );
+      ctx.lineTo(this.directionRightFrame + 250, canvas.height / 2);
+      ctx.lineTo(this.directionRightFrame + 200, canvas.height / 4);
+      ctx.lineTo(this.directionRightFrame, canvas.height / 4);
+      ctx.fillStyle = "white";
+      this.startingAlpha -= 0.003;
+      ctx.globalAlpha = this.startingAlpha;
+      ctx.fill();
+      ctx.font = "100px Arial";
+      ctx.fillText(
+        "PLAYER 1",
+        this.directionRightFrame - 500,
+        canvas.height / 2 + 30
+      );
+      ctx.closePath();
+      ctx.globalAlpha = 1;
+      if (this.directionRightFrame < 1400 || this.startingAlpha >= 0) {
+        this.directionRightFrame += 15;
+      } else {
+        this.directionRightFrame = -250;
+        this.directionAnimation = false;
+        this.startingAlpha = 0.5;
+      }
+    }
+
     drawBackground() {
-      ctx.drawImage(pitch, 172, -6);
+      ctx.drawImage(pitch, 50, 40);
     }
 
     generateDots() {
@@ -248,12 +311,69 @@ window.onload = function() {
         for (let c = 0; c < this.noOfColumns; c++) {
           ctx.moveTo(this.x, this.y);
           let dot = new Dot(id, this.x, this.y, r, c, 5, "green");
+
           if (id === 58) {
             game.ball = dot;
           }
+          console.log(id);
+          if (id === 0) {
+            dot.neighbourhood = [dot.id + 1, dot.id + 13, dot.id + 14];
+          } else if (id === 12) {
+            dot.neighbourhood = [dot.id - 1, dot.id + 12, dot.id + 13];
+          } else if (id === 104) {
+            dot.neighbourhood = [dot.id + 1, dot.id - 13, dot.id - 12];
+          } else if (id === 116) {
+            dot.neighbourhood = [dot.id - 1, dot.id - 13, dot.id - 14];
+          } else if (id <= 12 && id !== 0) {
+            dot.neighbourhood = [
+              dot.id - 1,
+              dot.id + 1,
+              dot.id + 12,
+              dot.id + 13,
+              dot.id + 14
+            ];
+          } else if (id > 103) {
+            dot.neighbourhood = [
+              dot.id + 1,
+              dot.id - 1,
+              dot.id - 12,
+              dot.id - 13,
+              dot.id - 14
+            ];
+          } else if (id % 13 === 0) {
+            dot.neighbourhood = [
+              dot.id + 1,
+              dot.id - 12,
+              dot.id - 13,
+              dot.id + 13,
+              dot.id + 14
+            ];
+            dot.noOfConnections = 3;
+          } else if ((id + 1) % 13 === 0) {
+            dot.neighbourhood = [
+              dot.id - 1,
+              dot.id - 13,
+              dot.id - 14,
+              dot.id + 12,
+              dot.id + 13
+            ];
+            dot.noOfConnections = 3;
+          } else {
+            dot.neighbourhood = [
+              dot.id - 1,
+              dot.id + 1,
+              dot.id - 12,
+              dot.id - 13,
+              dot.id - 14,
+              dot.id + 12,
+              dot.id + 13,
+              dot.id + 14
+            ];
+          }
+
           dots.push(dot);
-          id++;
           this.x += this.spacing;
+          id++;
         }
         this.y += this.spacing;
         this.x = this.originalX;
@@ -261,7 +381,7 @@ window.onload = function() {
     }
   }
 
-  let boisko = new Pitch(208, 12, 48, 9, 13);
+  let boisko = new Pitch(70, 80, 55, 13, 9);
   boisko.generateDots();
   boisko.drawBackground();
   let playerOne = new Player("Janek", "#ecc600");
@@ -303,7 +423,7 @@ window.onload = function() {
           )
         ) {
           game.startGame();
-
+          boisko.directionAnimation = true;
           dots.forEach((thatdot, index) => {
             if (dot.neighbourhood.indexOf(thatdot.id) != -1) {
               if (thatdot.id === game.ball.id) {
@@ -334,17 +454,15 @@ window.onload = function() {
           ) &&
           game.started === true
         ) {
-          if (dot.id >= 3 && dot.id <= 5) {
+          if (dot.id === 39 || dot.id === 52 || dot.id === 65) {
             alert("Player" + game.playerTurn + " WON!!!!");
           }
-
-          if (dot.id >= 111 && dot.id <= 113) {
+          if (dot.id === 51 || dot.id === 64 || dot.id === 77) {
             alert("Player" + game.playerTurn + " WON!!!!");
           }
-
+          console.log("neigbourhood" + dot.neighbourhood);
           dot.noOfConnections++;
           game.ball.noOfConnections++;
-
           let newMove = {
             from: [game.ball.x, game.ball.y],
             to: [dot.x, dot.y],
@@ -353,6 +471,7 @@ window.onload = function() {
           boisko.moves.push(newMove);
 
           if (dot.noOfConnections === 1) {
+            console.log("1 connection dot");
             game.switchTurns();
           }
 
@@ -397,6 +516,11 @@ window.onload = function() {
 
   function render() {
     boisko.drawBackground();
+    if (game.playerTurn === 1 && boisko.directionAnimation) {
+      boisko.drawDirectionLeft();
+    } else if (game.playerTurn === 2 && boisko.directionAnimation) {
+      boisko.drawDirectionRight();
+    }
     boisko.drawMoves();
     for (let d = 0; d < dots.length; d++) {
       let dot = dots[d];
