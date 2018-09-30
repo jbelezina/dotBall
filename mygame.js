@@ -40,6 +40,7 @@ window.onload = function() {
   );
 
   let game = {
+    blocked: false,
     winner: null,
     started: false,
     playerTurn: 1,
@@ -116,6 +117,11 @@ window.onload = function() {
     winMessage() {
       this.drawMessage("PLAYER " + game.winner, 180, 260);
       this.drawMessage("WON", 265, 400);
+    },
+
+    blockMessage() {
+      this.drawMessage("YOU ARE " + game.winner, 180, 260);
+      this.drawMessage("BLOCKED!", 265, 400);
     }
   };
 
@@ -524,6 +530,10 @@ window.onload = function() {
             }
           });
 
+          if (dot.noOfConnections === 8) {
+            game.blocked = true;
+          }
+
           mouseClick = {};
           game.ball = dot;
         }
@@ -555,6 +565,9 @@ window.onload = function() {
     game.drawBall();
     if (game.winner) {
       game.winMessage();
+    }
+    if (game.blocked) {
+      game.blockMessage();
     }
   }
 
